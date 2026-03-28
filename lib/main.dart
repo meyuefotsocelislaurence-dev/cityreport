@@ -27,7 +27,7 @@ class CityReportApp extends StatelessWidget {
       title: 'CityReport',
       debugShowCheckedModeBanner: false,
 
-      /** --- 1. CONFIGURATION DU THÈME CLAIR ---  */ 
+      /** --- 1. CONFIGURATION DU THÈME CLAIR ---  */
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
@@ -66,7 +66,10 @@ class CityReportApp extends StatelessWidget {
       // L'application suivra les réglages du téléphone (Clair ou Sombre)
       themeMode: ThemeMode.system,
 
-      initialRoute: '/login',
+      // Vérifier la session et rediriger
+      home: supabase.auth.currentSession != null
+          ? const MainNavigationPage()
+          : LoginPage(),
 
       routes: {
         '/login': (context) => LoginPage(),

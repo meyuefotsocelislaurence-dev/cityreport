@@ -12,56 +12,15 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final AuthController _authController = AuthController();
   bool _isLoading = false;
 
   Future<void> _signUp() async {
     setState(() => _isLoading = true);
-    try {
-      /** 1. Appel a supabase Auth */
-      await supabase.auth.signUp(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-        // phone: _phoneController.text.trim(), // Retiré car peut causer des erreurs si l'auth SMS n'est pas activée
-        /** On envoi le 'name' et 'phone' dans le metadata pour que le Trigger SQL le recupere */
-        data: {
-          'name': _nameController.text.trim(),
-          'phone': _phoneController.text.trim(),
-        },
-      );
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              "Inscription réussie ! Veuillez vérifier votre email.",
-            ),
-          ),
-        );
-      }
-    } on AuthException catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.message), backgroundColor: Colors.red),
-        );
-      }
-    } catch (error) {
-      // Afficher l'erreur réelle pour le débogage
-      print('Erreur lors de l\'inscription: $error');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Erreur: ${error.toString()}"),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
+    await _authController.register(context);
+
+    if (mounted) setState(() => _isLoading = false);
   }
 
   @override
@@ -76,7 +35,7 @@ class _RegisterPageState extends State<RegisterPage> {
             const Icon(Icons.person_add, size: 80, color: Colors.green),
             const SizedBox(height: 20),
             TextField(
-              controller: _nameController,
+              controller: _authController.nameController,
               decoration: const InputDecoration(
                 labelText: "Nom complet",
                 border: OutlineInputBorder(),
@@ -85,7 +44,7 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
             const SizedBox(height: 20),
             TextField(
-              controller: _emailController,
+              controller: _authController.emailController,
               decoration: const InputDecoration(
                 labelText: "Email",
                 border: OutlineInputBorder(),
@@ -94,7 +53,7 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
             const SizedBox(height: 15),
             TextField(
-              controller: _phoneController,
+              controller: _authController.phoneController,
               decoration: const InputDecoration(
                 labelText: "Numéro de téléphone",
                 border: OutlineInputBorder(),
@@ -103,7 +62,7 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
             const SizedBox(height: 15),
             TextField(
-              controller: _passwordController,
+              controller: _authController.passwordController,
               decoration: const InputDecoration(
                 labelText: "Mot de passe",
                 border: OutlineInputBorder(),
