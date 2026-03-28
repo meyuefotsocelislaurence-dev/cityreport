@@ -2,10 +2,22 @@ import 'package:flutter/material.dart';
 import '../controlers/auth_controller.dart';
 import 'register_page.dart';
 
-class LoginPage extends StatelessWidget {
-  final AuthController _authController = AuthController();
-
+class LoginPage extends StatefulWidget {
   LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final AuthController _authController = AuthController();
+  bool _isLoading = false;
+
+  Future<void> _handleLogin() async {
+    setState(() => _isLoading = true);
+    await _authController.login(context);
+    if (mounted) setState(() => _isLoading = false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +29,11 @@ class LoginPage extends StatelessWidget {
           children: [
             const Text(
               "CityReport",
-              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.green),
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: Colors.green,
+              ),
             ),
             const SizedBox(height: 40),
             TextField(
@@ -43,14 +59,29 @@ class LoginPage extends StatelessWidget {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: () => _authController.login(context),
+                onPressed: _isLoading ? null : _handleLogin,
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                child: const Text("Se connecter", style: TextStyle(color: Colors.white)),
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        "Se connecter",
+                        style: TextStyle(color: Colors.white),
+                      ),
               ),
             ),
             TextButton(
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => RegisterPage()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => RegisterPage()),
+                );
               },
               child: const Text("Pas encore de compte ? S'inscrire"),
             ),
