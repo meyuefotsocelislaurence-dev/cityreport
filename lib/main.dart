@@ -3,10 +3,20 @@ import 'views/login_page.dart';
 import 'views/register_page.dart';
 import 'views/main_navigation_page.dart';
 import 'views/add_report_page.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url: 'https://jwuoqvssubxnzeptqmyk.supabase.co',
+    anonKey: 'sb_publishable_xx2wz-wvc2_LUGQcZLyAbA_dzClceuM',
+  );
+
   runApp(const CityReportApp());
 }
+
+final supabase = Supabase.instance.client;
 
 class CityReportApp extends StatelessWidget {
   const CityReportApp({super.key});
@@ -17,7 +27,7 @@ class CityReportApp extends StatelessWidget {
       title: 'CityReport',
       debugShowCheckedModeBanner: false,
 
-      // --- 1. CONFIGURATION DU THÈME CLAIR ---
+      /** --- 1. CONFIGURATION DU THÈME CLAIR ---  */ 
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
@@ -54,17 +64,17 @@ class CityReportApp extends StatelessWidget {
 
       // --- 3. GESTION AUTOMATIQUE ---
       // L'application suivra les réglages du téléphone (Clair ou Sombre)
-      themeMode: ThemeMode.system, 
+      themeMode: ThemeMode.system,
 
-      initialRoute: '/login', 
-      
+      initialRoute: '/login',
+
       routes: {
         '/login': (context) => LoginPage(),
         '/register': (context) => RegisterPage(),
         '/main': (context) => const MainNavigationPage(),
         '/add-report': (context) => const AddReportPage(),
       },
-      
+
       onUnknownRoute: (settings) {
         return MaterialPageRoute(builder: (context) => LoginPage());
       },
