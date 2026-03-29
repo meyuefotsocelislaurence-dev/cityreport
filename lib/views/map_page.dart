@@ -8,7 +8,7 @@ class MapPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final custom.MapController _mapController = custom.MapController();
+    final custom.MapController mapController = custom.MapController();
     
     // Simulation de ma position actuelle (ex: centre de Douala)
     const LatLng myFakeLocation = LatLng(4.0511, 9.7679);
@@ -28,7 +28,7 @@ class MapPage extends StatelessWidget {
           
           // Layer des signalements (Points rouges)
           MarkerLayer(
-            markers: _mapController.getMarkers(),
+            markers: mapController.getMarkers(),
           ),
 
           // Layer de MA POSITION simulée (Point bleu)

@@ -8,8 +8,8 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final HomeController _controller = HomeController();
-    final List<ReportModel> reports = _controller.getRecentReports();
+    final HomeController controller = HomeController();
+    final List<ReportModel> reports = controller.getRecentReports();
     final user = Supabase.instance.client.auth.currentUser;
 
     return Scaffold(
@@ -42,13 +42,13 @@ class HomePage extends StatelessWidget {
               children: [
                 _buildStatCard(
                   "Total",
-                  _controller.getTotalReports().toString(),
+                  controller.getTotalReports().toString(),
                   Colors.blue,
                 ),
                 const SizedBox(width: 10),
                 _buildStatCard(
                   "Résolus",
-                  _controller.getResolvedReports().toString(),
+                  controller.getResolvedReports().toString(),
                   Colors.green,
                 ),
               ],
