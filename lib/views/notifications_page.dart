@@ -7,8 +7,39 @@ import 'package:flutter/material.dart';
  * aux interventions de HYSACAM et aux récompenses gagnées.
  * Design conforme aux maquettes "Simple & Beau".
  */
-class NotificationsPage extends StatelessWidget {
+import '../controlers/home_controller.dart';
+import '../models/report_model.dart';
+
+class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
+
+  @override
+  State<NotificationsPage> createState() => _NotificationsPageState();
+}
+
+class _NotificationsPageState extends State<NotificationsPage> {
+  final HomeController _homeController = HomeController();
+  List<ReportModel> _reports = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotifications();
+  }
+
+  /**
+   * Charge les rapports pour simuler des notifications de statut.
+   */
+  Future<void> _loadNotifications() async {
+    final data = await _homeController.fetchRecentReports();
+    if (mounted) {
+      setState(() {
+        _reports = data;
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,38 +63,59 @@ class NotificationsPage extends StatelessWidget {
               ),
               const SizedBox(height: 40),
 
-              /** Liste de Notifications */
-              _buildNotificationCard(
-                icon: Icons.check_circle_outline_rounded,
-                iconColor: const Color(0xFF059669),
-                title: "SIGNALEMENT RÉSOLU",
-                description: "Les ordures à Bali ont été ramassées avec succès. Merci !",
-                points: "+10 Eco-Points gagnés",
-              ),
-              
-              const SizedBox(height: 20),
-              
-              _buildNotificationCard(
-                icon: Icons.info_outline_rounded,
-                iconColor: const Color(0xFFFBBF24),
-                title: "PASSAGE HYSACAM",
-                description: "Le ramassage dans votre zone est prévu demain à 08:00.",
-              ),
-              
-              const SizedBox(height: 20),
-              
-              /** Notification Archivée (Optionnel) */
+              /** Notification de Bienvenue Statique */
               _buildNotificationCard(
                 icon: Icons.eco_outlined,
-                iconColor: Colors.blue,
-                title: "NOUVEAU BADGE",
-                description: "Vous avez débloqué le badge 'Citoyen Actif' !",
+                iconColor: const Color(0xFF059669),
+                title: "BIENVENUE SUR CITYREPORT",
+                description: "Merci de rejoindre la communauté pour une ville de Douala plus propre.",
               ),
+              
+              const SizedBox(height: 20),
+
+              /** Liste Dynamique basée sur les signalements */
+              if (_isLoading)
+                const Center(child: CircularProgressIndicator(color: Color(0xFF059669)))
+              else if (_reports.isEmpty)
+                _buildEmptyNotifications()
+              else
+                Column(
+                  children: _reports.map((report) {
+                    final isResolved = report.statut.toLowerCase() == "résolu";
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: _buildNotificationCard(
+                        icon: isResolved ? Icons.check_circle_outline_rounded : Icons.history_rounded,
+                        iconColor: isResolved ? const Color(0xFF059669) : const Color(0xFFFBBF24),
+                        title: "SIGNALEMENT ${report.statut.toUpperCase()}",
+                        description: "Votre signalement '${report.typeInsalubrite}' est ${report.statut.toLowerCase()}.",
+                        points: isResolved ? "+50 Eco-Points gagnés" : null,
+                      ),
+                    );
+                  }).toList(),
+                ),
               
               const SizedBox(height: 100), // Espace pour la navigation
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /** UI : Message si aucune notification */
+  Widget _buildEmptyNotifications() {
+    return Center(
+      child: Column(
+        children: [
+          const SizedBox(height: 60),
+          Icon(Icons.notifications_none_rounded, size: 60, color: Colors.grey[200]),
+          const SizedBox(height: 20),
+          const Text(
+            "Aucune nouvelle alerte pour le moment.",
+            style: TextStyle(color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
+          ),
+        ],
       ),
     );
   }

@@ -1,3 +1,5 @@
+// ignore_for_file: slash_for_doc_comments
+
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -49,7 +51,10 @@ class ReportController {
       await supabase.storage.from('reports').uploadBinary(
             fileName,
             imageBytes,
-            fileOptions: const FileOptions(contentType: 'image/jpeg'),
+            fileOptions: const FileOptions(
+              contentType: 'image/jpeg',
+              upsert: true,
+            ),
           );
 
       // 3. Récupération de l'URL publique de l'image
@@ -69,6 +74,9 @@ class ReportController {
       });
 
       return true;
+    } on StorageException catch (e) {
+      print('Erreur Storage: ${e.message}');
+      return false;
     } catch (e) {
       print('Erreur d\'envoi du rapport: $e');
       return false;

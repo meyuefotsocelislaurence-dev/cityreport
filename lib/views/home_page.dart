@@ -11,14 +11,39 @@ import 'report_details_page.dart';
  * et un flux des signalements récents dans la ville de Douala.
  * Le design suit la charte "Simple & Beau" avec les couleurs HYSACAM.
  */
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final HomeController _controller = HomeController();
+  List<ReportModel> _reports = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  /**
+   * Récupère les données réelles au démarrage.
+   */
+  Future<void> _loadData() async {
+    final data = await _controller.fetchRecentReports();
+    if (mounted) {
+      setState(() {
+        _reports = data;
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    /** Initialisation du contrôleur et récupération des données */
-    final HomeController controller = HomeController();
-    final List<ReportModel> reports = controller.getRecentReports();
     final user = Supabase.instance.client.auth.currentUser;
 
     return Scaffold(
@@ -32,7 +57,7 @@ class HomePage extends StatelessWidget {
           
           /** Section Statistiques d'Impact (Carte Flottante) */
           SliverToBoxAdapter(
-            child: _buildImpactCard(controller),
+            child: _buildImpactCard(_controller),
           ),
           
           /** Titre de la section Signalements */
@@ -57,8 +82,12 @@ class HomePage extends StatelessWidget {
             ),
           ),
           
-          /** Liste des signalements récents */
-          SliverPadding(
+          /** Liste des signalements récents ou Indicateur de chargement */
+          _isLoading 
+            ? const SliverFillRemaining(
+                child: Center(child: CircularProgressIndicator(color: Color(0xFF059669))),
+              )
+            : SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
@@ -68,14 +97,14 @@ class HomePage extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => ReportDetailsPage(report: reports[index]),
+                          builder: (context) => ReportDetailsPage(report: _reports[index]),
                         ),
                       );
                     },
-                    child: _buildReportCard(reports[index]),
+                    child: _buildReportCard(_reports[index]),
                   );
                 },
-                childCount: reports.length,
+                childCount: _reports.length,
               ),
             ),
           ),

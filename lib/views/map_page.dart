@@ -22,10 +22,31 @@ class _MapPageState extends State<MapPage> {
   final custom.MapController _mapController = custom.MapController();
   final MapController _internalMapController = MapController();
   
+  List<ReportModel> _reports = [];
+  bool _isLoading = true;
   ReportModel? _selectedReport;
   
   // Position initiale (Douala centre)
   final LatLng _initialLocation = const LatLng(4.0511, 9.7679);
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInitialData();
+  }
+
+  /**
+   * Charge les signalements réels depuis Supabase au démarrage.
+   */
+  Future<void> _loadInitialData() async {
+    final data = await _mapController.fetchReports();
+    if (mounted) {
+      setState(() {
+        _reports = data;
+        _isLoading = false;
+      });
+    }
+  }
 
   /**
    * Gère le clic sur un marqueur pour afficher la prévisualisation.
@@ -56,12 +77,11 @@ class _MapPageState extends State<MapPage> {
               TileLayer(
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.example.cityreport',
-                // Amélioration visuelle optionnelle du style de carte (Grayscale via ColorFilter si besoin)
               ),
               
-              /** Layer des signalements (Marqueurs Jaunes HYSACAM) */
+              /** Layer des signalements (Marqueurs Réels Supabase) */
               MarkerLayer(
-                markers: _mapController.getMarkers(_onMarkerTap),
+                markers: _mapController.getMarkers(_reports, _onMarkerTap),
               ),
 
               /** Layer de MA POSITION (Point bleu pulsant) */
@@ -106,6 +126,12 @@ class _MapPageState extends State<MapPage> {
               child: const Icon(Icons.my_location, color: Color(0xFF059669)),
             ),
           ),
+
+          /** INDICATEUR DE CHARGEMENT */
+          if (_isLoading)
+            const Center(
+              child: CircularProgressIndicator(color: Color(0xFF059669)),
+            ),
         ],
       ),
     );

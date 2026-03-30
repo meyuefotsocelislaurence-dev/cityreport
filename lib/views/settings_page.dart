@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../controlers/auth_controller.dart';
+import '../controlers/home_controller.dart';
 
 /**
  * SettingsPage (Profil) - Espace personnel de l'éco-citoyen.
@@ -18,11 +19,29 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   final AuthController _authController = AuthController();
+  final HomeController _homeController = HomeController();
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfileData();
+  }
+
+  /**
+   * Charge les données de profil et d'impact au démarrage.
+   */
+  Future<void> _loadProfileData() async {
+    await _homeController.fetchRecentReports();
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final user = Supabase.instance.client.auth.currentUser;
-    final userName = user?.userMetadata?['name']?.toString().toUpperCase() ?? "JEAN DOUALA";
+    final userName = user?.userMetadata?['name']?.toString().toUpperCase() ?? "UTILISATEUR";
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -32,8 +51,10 @@ class _SettingsPageState extends State<SettingsPage> {
             /** En-tête Vert Premium */
             _buildProfileHeader(userName),
             
-            /** Carte d'Impact (Points & KG) */
-            _buildImpactStatsCard(),
+            /** Carte d'Impact (Points & KG) Dynamique */
+            _isLoading 
+              ? const SizedBox(height: 100, child: Center(child: CircularProgressIndicator(color: Color(0xFF059669))))
+              : _buildImpactStatsCard(_homeController),
             
             const SizedBox(height: 40),
             
@@ -129,7 +150,7 @@ class _SettingsPageState extends State<SettingsPage> {
   /**
    * Construit la carte flottante affichant les points et l'impact.
    */
-  Widget _buildImpactStatsCard() {
+  Widget _buildImpactStatsCard(HomeController controller) {
     return Transform.translate(
       offset: const Offset(0, -35),
       child: Container(
@@ -148,9 +169,9 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
         child: Row(
           children: [
-            _buildStatItem("POINTS", "450", const Color(0xFF059669)),
+            _buildStatItem("POINTS", controller.getEcoPoints().toString(), const Color(0xFF059669)),
             Container(width: 1, height: 40, color: const Color(0xFFF1F5F9)),
-            _buildStatItem("IMPACT", "-12Kg", const Color(0xFF1F2937)),
+            _buildStatItem("IMPACT", "-${controller.getCo2Impact()}Kg", const Color(0xFF1F2937)),
           ],
         ),
       ),
