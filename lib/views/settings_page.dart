@@ -130,26 +130,29 @@ class _SettingsPageState extends State<SettingsPage> {
    * Construit la carte flottante affichant les points et l'impact.
    */
   Widget _buildImpactStatsCard() {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(30, -35, 30, 0),
-      padding: const EdgeInsets.symmetric(vertical: 24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 30,
-            offset: const Offset(0, 15),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          _buildStatItem("POINTS", "450", const Color(0xFF059669)),
-          Container(width: 1, height: 40, color: const Color(0xFFF1F5F9)),
-          _buildStatItem("IMPACT", "-12Kg", const Color(0xFF1F2937)),
-        ],
+    return Transform.translate(
+      offset: const Offset(0, -35),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 30),
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 30,
+              offset: const Offset(0, 15),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            _buildStatItem("POINTS", "450", const Color(0xFF059669)),
+            Container(width: 1, height: 40, color: const Color(0xFFF1F5F9)),
+            _buildStatItem("IMPACT", "-12Kg", const Color(0xFF1F2937)),
+          ],
+        ),
       ),
     );
   }

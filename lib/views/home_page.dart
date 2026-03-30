@@ -158,28 +158,31 @@ class HomePage extends StatelessWidget {
    * Construit la carte d'impact citoyen (Eco-Points / KG CO2).
    */
   Widget _buildImpactCard(HomeController controller) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(24, -25, 24, 0),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 30,
-            offset: const Offset(0, 15),
-          ),
-        ],
-        border: Border.all(color: const Color(0xFFF1F5F9)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildImpactItem("Points", controller.getEcoPoints().toString(), Icons.emoji_events_outlined, const Color(0xFFFBBF24)),
-          Container(width: 1, height: 40, color: const Color(0xFFF1F5F9)),
-          _buildImpactItem("Impact", "${controller.getCo2Impact()} Kg", Icons.eco_outlined, const Color(0xFF059669)),
-        ],
+    return Transform.translate(
+      offset: const Offset(0, -25),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 30,
+              offset: const Offset(0, 15),
+            ),
+          ],
+          border: Border.all(color: const Color(0xFFF1F5F9)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildImpactItem("Points", controller.getEcoPoints().toString(), Icons.emoji_events_outlined, const Color(0xFFFBBF24)),
+            Container(width: 1, height: 40, color: const Color(0xFFF1F5F9)),
+            _buildImpactItem("Impact", "${controller.getCo2Impact()} Kg", Icons.eco_outlined, const Color(0xFF059669)),
+          ],
+        ),
       ),
     );
   }
