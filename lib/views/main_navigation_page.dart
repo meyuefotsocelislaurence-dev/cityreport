@@ -42,6 +42,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
       
       /** Bouton Central de Signalement (Jaune Hysacam) */
       floatingActionButton: FloatingActionButton(
+        heroTag: "main_nav_fab",
         onPressed: () {
           // Ouvre la page de signalement en mode plein écran / modal
           Navigator.push(

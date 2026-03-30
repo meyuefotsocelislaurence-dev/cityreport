@@ -119,6 +119,7 @@ class _MapPageState extends State<MapPage> {
             bottom: (_selectedReport != null) ? 250 : 110,
             right: 20,
             child: FloatingActionButton(
+              heroTag: "map_location_fab",
               onPressed: () => _internalMapController.move(_initialLocation, 14.0),
               backgroundColor: Colors.white,
               elevation: 4,
