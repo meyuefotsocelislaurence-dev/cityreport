@@ -6,6 +6,7 @@
  */
 class ReportModel {
   final String? id;
+  final String? userId; // ID de l'auteur du signalement
   final String? title;
   final String description;
   final String typeInsalubrite; // ex: Ordures, Inondation, Gravats
@@ -17,6 +18,7 @@ class ReportModel {
 
   ReportModel({
     this.id,
+    this.userId,
     this.title,
     required this.description,
     required this.typeInsalubrite,
@@ -33,6 +35,7 @@ class ReportModel {
   factory ReportModel.fromMap(Map<String, dynamic> map) {
     return ReportModel(
       id: map['id']?.toString(),
+      userId: map['user_id']?.toString(),
       title: map['title'] as String?,
       description: map['description'] ?? "Aucune description",
       typeInsalubrite: map['typeInsalubrite'] ?? "Ordures ménagères",
@@ -49,6 +52,7 @@ class ReportModel {
    */
   Map<String, dynamic> toMap() {
     return {
+      'user_id': userId,
       'title': title,
       'description': description,
       'typeInsalubrite': typeInsalubrite,

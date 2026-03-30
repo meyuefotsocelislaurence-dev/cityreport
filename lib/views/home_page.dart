@@ -20,7 +20,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final HomeController _controller = HomeController();
-  List<ReportModel> _reports = [];
+  List<ReportModel> _allReports = [];
+  String _selectedFilter = "TOUT"; // TOUT, MOI, RÉSOLU
   bool _isLoading = true;
 
   @override
@@ -30,88 +31,152 @@ class _HomePageState extends State<HomePage> {
   }
 
   /**
-   * Récupère les données réelles au démarrage.
+   * Récupère les données réelles au démarrage ou via refresh.
    */
   Future<void> _loadData() async {
-    final data = await _controller.fetchRecentReports();
+    await _controller.fetchUserStats(); // Pour les points et stats
+    final data = await _controller.fetchAllCommunityReports(); // Flux global
     if (mounted) {
       setState(() {
-        _reports = data;
+        _allReports = data;
         _isLoading = false;
       });
     }
   }
 
+  /**
+   * Filtre la liste des rapports selon le choix de l'utilisateur.
+   */
+  List<ReportModel> _getFilteredReports() {
+    if (_selectedFilter == "TOUT") return _allReports;
+    if (_selectedFilter == "MOI") {
+      final user = Supabase.instance.client.auth.currentUser;
+      return _allReports.where((r) => r.userId == user?.id).toList(); 
+    }
+    if (_selectedFilter == "RÉSOLU") {
+      return _allReports.where((r) => r.statut.toLowerCase() == "résolu").toList();
+    }
+    return _allReports;
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = Supabase.instance.client.auth.currentUser;
+    final filteredReports = _getFilteredReports();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC), // Fond gris très clair
-      body: CustomScrollView(
-        slivers: [
-          /** Section En-tête Dynamique */
-          SliverToBoxAdapter(
-            child: _buildHeader(user),
-          ),
-          
-          /** Section Statistiques d'Impact (Carte Flottante) */
-          SliverToBoxAdapter(
-            child: _buildImpactCard(_controller),
-          ),
-          
-          /** Titre de la section Signalements */
-          const SliverPadding(
-            padding: EdgeInsets.fromLTRB(24, 32, 24, 16),
-            sliver: SliverToBoxAdapter(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "MES SIGNALEMENTS",
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF94A3B8),
-                      letterSpacing: 2.0,
-                    ),
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: RefreshIndicator(
+        onRefresh: _loadData,
+        color: const Color(0xFF059669),
+        child: CustomScrollView(
+          slivers: [
+            /** Section En-tête Dynamique */
+            SliverToBoxAdapter(child: _buildHeader(user)),
+            
+            /** Section Statistiques d'Impact (Carte Flottante) */
+            SliverToBoxAdapter(child: _buildImpactCard(_controller)),
+            
+            /** Section Filtres Communautaires */
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 10, 24, 0),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildFilterChip("TOUT", Icons.all_inclusive_rounded),
+                      _buildFilterChip("MOI", Icons.person_pin_rounded),
+                      _buildFilterChip("RÉSOLU", Icons.check_circle_outline_rounded),
+                    ],
                   ),
-                  Icon(Icons.tune, size: 20, color: Color(0xFF94A3B8)),
-                ],
+                ),
               ),
             ),
-          ),
-          
-          /** Liste des signalements récents ou Indicateur de chargement */
-          _isLoading 
-            ? const SliverFillRemaining(
-                child: Center(child: CircularProgressIndicator(color: Color(0xFF059669))),
-              )
-            : SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ReportDetailsPage(report: _reports[index]),
-                        ),
-                      );
-                    },
-                    child: _buildReportCard(_reports[index]),
-                  );
-                },
-                childCount: _reports.length,
+            
+            /** Titre de la section Signalements */
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+              sliver: SliverToBoxAdapter(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      _selectedFilter == "MOI" ? "MES SIGNALEMENTS" : "FLUX DE DOUALA",
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF94A3B8),
+                        letterSpacing: 2.0,
+                      ),
+                    ),
+                    const Icon(Icons.tune, size: 20, color: Color(0xFF94A3B8)),
+                  ],
+                ),
               ),
             ),
-          ),
-          
-          /** Espace de fin pour la barre de navigation */
-          const SliverToBoxAdapter(child: SizedBox(height: 100)),
-        ],
+            
+            /** Liste des signalements récents ou Indicateur de chargement */
+            _isLoading 
+              ? const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator(color: Color(0xFF059669))),
+                )
+              : filteredReports.isEmpty 
+                ? const SliverFillRemaining(
+                    child: Center(child: Text("Aucun signalement trouvé", style: TextStyle(color: Colors.grey))),
+                  )
+                : SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ReportDetailsPage(report: filteredReports[index]),
+                          ),
+                        );
+                      },
+                      child: _buildReportCard(filteredReports[index]),
+                    );
+                  },
+                  childCount: filteredReports.length,
+                ),
+              ),
+            ),
+            
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /** UI : Chip de filtre personnalisé HYSACAM */
+  Widget _buildFilterChip(String label, IconData icon) {
+    final isSelected = _selectedFilter == label;
+    return Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: ChoiceChip(
+        avatar: Icon(icon, size: 16, color: isSelected ? Colors.white : const Color(0xFF059669)),
+        label: Text(label),
+        labelStyle: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w900,
+          color: isSelected ? Colors.white : const Color(0xFF059669),
+        ),
+        selected: isSelected,
+        onSelected: (val) => setState(() => _selectedFilter = label),
+        backgroundColor: Colors.white,
+        selectedColor: const Color(0xFF059669),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: BorderSide(color: isSelected ? Colors.transparent : const Color(0xFFE2E8F0)),
+        ),
+        showCheckmark: false,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
     );
   }

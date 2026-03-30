@@ -32,7 +32,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
    * Charge les rapports pour simuler des notifications de statut.
    */
   Future<void> _loadNotifications() async {
-    final data = await _homeController.fetchRecentReports();
+    await _homeController.fetchUserStats();
+    final data = _homeController.userReports; // Les notifications sont basées sur mes rapports
     if (mounted) {
       setState(() {
         _reports = data;

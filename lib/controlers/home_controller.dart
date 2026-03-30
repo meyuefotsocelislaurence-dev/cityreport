@@ -9,29 +9,47 @@ import '../models/report_model.dart';
  */
 class HomeController {
   final supabase = Supabase.instance.client;
-  List<ReportModel> userReports = [];
+  List<ReportModel> userReports = []; // Signalements de l'utilisateur (pour les stats)
+  List<ReportModel> allReports = [];  // Tous les signalements (pour le flux communautaire)
 
   /**
-   * Récupère les signalements réels de l'utilisateur connecté.
+   * Récupère les signalements personnels pour calculer les statistiques.
    */
-  Future<List<ReportModel>> fetchRecentReports() async {
+  Future<void> fetchUserStats() async {
     try {
       final user = supabase.auth.currentUser;
-      if (user == null) return [];
+      if (user == null) return;
 
       final response = await supabase
           .from('reports')
           .select()
-          .eq('user_id', user.id)
-          .order('created_at', ascending: false);
+          .eq('user_id', user.id);
 
       userReports = (response as List)
           .map((json) => ReportModel.fromMap(json))
           .toList();
-      
-      return userReports;
     } catch (e) {
-      print('Erreur de récupération des rapports: $e');
+      print('Erreur de stats: $e');
+    }
+  }
+
+  /**
+   * Récupère TOUS les signalements de Douala (Flux Communautaire).
+   */
+  Future<List<ReportModel>> fetchAllCommunityReports() async {
+    try {
+      final response = await supabase
+          .from('reports')
+          .select()
+          .order('created_at', ascending: false);
+
+      allReports = (response as List)
+          .map((json) => ReportModel.fromMap(json))
+          .toList();
+      
+      return allReports;
+    } catch (e) {
+      print('Erreur de récupération communautaire: $e');
       return [];
     }
   }
