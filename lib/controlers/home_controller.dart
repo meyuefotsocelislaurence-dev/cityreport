@@ -1,59 +1,59 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/report_model.dart';
 
+/**
+ * HomeController - Gestionnaire de logique de la page d'accueil dynamique.
+ * 
+ * Récupère les signalements réels de l'utilisateur depuis Supabase 
+ * et calcule dynamiquement les statistiques d'impact citoyen (Eco-Points).
+ */
 class HomeController {
-  // 1. Liste simulée des signalements pour la démonstration
-  // Dans une version finale, ces données viendraient d'une API ou de Firebase
-  List<ReportModel> getRecentReports() {
-    return [
-      ReportModel(
-        description: "Accumulation d'ordures ménagères devant le marché.",
-        typeInsalubrite: "Ordures ménagères",
-        imageUrl: "assets/images/ordures.jpg", // Chemin fictif pour l'UI
-        latitude: 4.0511,
-        longitude: 9.7679,
-        date: DateTime.now(),
-        statut: "En attente",
-      ),
-      ReportModel(
-        description: "Caniveau bouché provoquant des inondations sur la chaussée.",
-        typeInsalubrite: "Eaux usées",
-        imageUrl: "assets/images/eau.jpg",
-        latitude: 4.0600,
-        longitude: 9.7700,
-        date: DateTime.now().subtract(const Duration(days: 1)),
-        statut: "En cours",
-      ),
-      ReportModel(
-        description: "Dépôt sauvage de gravats de construction.",
-        typeInsalubrite: "Gravats",
-        imageUrl: "assets/images/gravats.jpg",
-        latitude: 4.0400,
-        longitude: 9.7500,
-        date: DateTime.now().subtract(const Duration(days: 2)),
-        statut: "Résolu",
-      ),
-    ];
+  final supabase = Supabase.instance.client;
+  List<ReportModel> userReports = [];
+
+  /**
+   * Récupère les signalements réels de l'utilisateur connecté.
+   */
+  Future<List<ReportModel>> fetchRecentReports() async {
+    try {
+      final user = supabase.auth.currentUser;
+      if (user == null) return [];
+
+      final response = await supabase
+          .from('reports')
+          .select()
+          .eq('user_id', user.id)
+          .order('created_at', ascending: false);
+
+      userReports = (response as List)
+          .map((json) => ReportModel.fromMap(json))
+          .toList();
+      
+      return userReports;
+    } catch (e) {
+      print('Erreur de récupération des rapports: $e');
+      return [];
+    }
   }
 
-  // 2. Logique pour les statistiques du tableau de bord
-  int getTotalReports() {
-    // Simule un total de signalements dans la ville
-    return 145;
+  /**
+   * Retourne le nombre total de signalements effectués par l'utilisateur.
+   */
+  int getUserTotalReports() => userReports.length;
+
+  /** 
+   * Calcul dynamique des points éco-citoyens (ex: 50 points par signalement).
+   */
+  int getEcoPoints() => userReports.length * 50;
+
+  /** 
+   * Calcul dynamique de l'impact CO2 évité (ex: 2kg par signalement résolu).
+   */
+  int getCo2Impact() {
+    final resolvedCount = userReports.where((r) => r.statut.toLowerCase() == "résolu").length;
+    return resolvedCount * 2;
   }
 
-  int getResolvedReports() {
-    // Simule le nombre de problèmes résolus par les autorités
-    return 92;
-  }
-
-  double getResolutionRate() {
-    if (getTotalReports() == 0) return 0.0;
-    return (getResolvedReports() / getTotalReports()) * 100;
-  }
-
-  // 3. Logique de filtrage (optionnel pour la soutenance)
-  // Permet de montrer au jury que vous avez prévu une gestion par statut
-  List<ReportModel> filterByStatus(String status) {
-    return getRecentReports().where((r) => r.statut == status).toList();
-  }
+  /** Statistiques globales (pour la démo, on peut garder une base fixe + dynamique) */
+  int getTotalReports() => 145 + userReports.length;
 }

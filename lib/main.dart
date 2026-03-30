@@ -3,8 +3,16 @@ import 'views/login_page.dart';
 import 'views/register_page.dart';
 import 'views/main_navigation_page.dart';
 import 'views/add_report_page.dart';
+import 'views/splash_page.dart';
+import 'views/onboarding_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+/**
+ * CityReport - Application de signalement citoyen pour HYSACAM.
+ * 
+ * L'application permet aux citoyens de Douala de signaler des problèmes 
+ * d'insalubrité urbaine en temps réel via Supabase.
+ */
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -31,16 +39,16 @@ class CityReportApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.green,
-          brightness: Brightness.light, // Mode clair
-          primary: Colors.green,
-          secondary: Colors.orangeAccent,
+          seedColor: const Color(0xFF059669), // Vert Hysacam
+          brightness: Brightness.light, 
+          primary: const Color(0xFF059669),
+          secondary: const Color(0xFFFBBF24), // Jaune Hysacam
         ),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.green,
+          backgroundColor: Color(0xFF059669),
           foregroundColor: Colors.white,
           centerTitle: true,
-          elevation: 2,
+          elevation: 0,
         ),
       ),
 
@@ -48,38 +56,36 @@ class CityReportApp extends StatelessWidget {
       darkTheme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.green,
-          brightness: Brightness.dark, // Mode sombre
-          primary: Colors.green,
-          secondary: Colors.orangeAccent,
-          surface: const Color(0xFF121212), // Fond gris foncé standard
+          seedColor: const Color(0xFF059669),
+          brightness: Brightness.dark,
+          primary: const Color(0xFF059669),
+          secondary: const Color(0xFFFBBF24),
+          surface: const Color(0xFF121212),
         ),
         appBarTheme: AppBarTheme(
           backgroundColor: Colors.grey[900],
           foregroundColor: Colors.white,
           centerTitle: true,
-          elevation: 2,
+          elevation: 0,
         ),
       ),
 
-      // --- 3. GESTION AUTOMATIQUE ---
-      // L'application suivra les réglages du téléphone (Clair ou Sombre)
       themeMode: ThemeMode.system,
 
-      // Vérifier la session et rediriger
-      home: supabase.auth.currentSession != null
-          ? const MainNavigationPage()
-          : LoginPage(),
+      /** Point d'entrée : On commence toujours par le Splash Screen */
+      home: const SplashPage(),
 
       routes: {
-        '/login': (context) => LoginPage(),
-        '/register': (context) => RegisterPage(),
+        '/splash': (context) => const SplashPage(),
+        '/onboarding': (context) => const OnboardingPage(),
+        '/login': (context) => const LoginPage(),
+        '/register': (context) => const RegisterPage(),
         '/main': (context) => const MainNavigationPage(),
         '/add-report': (context) => const AddReportPage(),
       },
 
       onUnknownRoute: (settings) {
-        return MaterialPageRoute(builder: (context) => LoginPage());
+        return MaterialPageRoute(builder: (context) => const LoginPage());
       },
     );
   }
