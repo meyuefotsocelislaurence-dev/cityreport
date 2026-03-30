@@ -3,10 +3,10 @@ import 'package:image_picker/image_picker.dart';
 import '../controlers/report_controller.dart';
 
 /**
- * AddReportPage - Formulaire de signalement citoyen.
+ * AddReportPage - Formulaire de signalement dynamique.
  * 
- * Permet de capturer une photo de l'insalubrité, d'ajouter un titre/description
- * et de récupérer automatiquement la position GPS pour envoi à HYSACAM.
+ * Permet de capturer une photo (Web/Mobile), d'ajouter un titre,
+ * une description détaillée et d'envoyer le tout à Supabase.
  * Design conforme aux maquettes "Simple & Beau".
  */
 class AddReportPage extends StatefulWidget {
@@ -23,7 +23,8 @@ class _AddReportPageState extends State<AddReportPage> {
   bool _isSending = false;
 
   /**
-   * Affiche le menu de sélection de source d'image (Caméra/Galerie).
+   * Action : Sélectionner une image (Caméra ou Galerie).
+   * Compatible Web, iOS et Android.
    */
   void _showImagePicker() {
     showModalBottomSheet(
@@ -49,7 +50,7 @@ class _AddReportPageState extends State<AddReportPage> {
     );
   }
 
-  /** Option individuelle pour le sélecteur d'image */
+  /** Élément individuel pour le sélecteur d'image */
   Widget _buildPickerOption(IconData icon, String label, ImageSource source) {
     return ListTile(
       leading: Icon(icon, color: const Color(0xFF059669)),
@@ -62,6 +63,47 @@ class _AddReportPageState extends State<AddReportPage> {
         if (mounted) setState(() {});
       },
     );
+  }
+
+  /**
+   * Action : Soumission dynamique du rapport.
+   * Upload image (Storage) + Enregistrement (Database).
+   */
+  Future<void> _submitReport() async {
+    final title = _titleController.text.trim();
+    final description = _descriptionController.text.trim();
+
+    if (_controller.selectedImage == null || title.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Veuillez ajouter une photo et un titre")),
+      );
+      return;
+    }
+
+    setState(() => _isSending = true);
+
+    // Tentative de localisation (optionnelle mais recommandée)
+    await _controller.getLocation();
+
+    final success = await _controller.submitReport(
+      title: title,
+      description: description,
+      typeInsalubrite: "Ordures ménagères", // Statistique par défaut (à dynamiser si besoin)
+    );
+
+    if (mounted) {
+      setState(() => _isSending = false);
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("SIGNALEMENT ENVOYÉ AVEC SUCCÈS"), backgroundColor: Color(0xFF059669)),
+        );
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("ÉCHEC DE L'ENVOI. VÉRIFIEZ VOTRE CONNEXION."), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   @override
@@ -86,7 +128,7 @@ class _AddReportPageState extends State<AddReportPage> {
               ),
               const SizedBox(height: 40),
 
-              /** Zone de Photo avec pointillé stylisé */
+              /** Zone de Photo compatible WEB (Blob URLs) */
               GestureDetector(
                 onTap: _showImagePicker,
                 child: Container(
@@ -98,27 +140,25 @@ class _AddReportPageState extends State<AddReportPage> {
                     border: Border.all(
                       color: const Color(0xFFCBD5E1),
                       width: 2,
-                      style: BorderStyle.solid, // Flutter n'a pas de pointillés en standard, on utilise un look épuré
                     ),
                   ),
                   child: _controller.selectedImage != null
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(30),
-                          child: Image.file(_controller.selectedImage!, fit: BoxFit.cover),
+                          child: Image.network(
+                            _controller.selectedImage!.path,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => const Icon(Icons.error, color: Colors.red),
+                          ),
                         )
                       : Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.camera_alt_outlined, size: 50, color: Colors.grey[300]),
                             const SizedBox(height: 10),
-                            Text(
+                            const Text(
                               "AJOUTER UNE PHOTO",
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.grey[400],
-                                letterSpacing: 1,
-                              ),
+                              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.grey, letterSpacing: 1),
                             ),
                           ],
                         ),
@@ -137,11 +177,11 @@ class _AddReportPageState extends State<AddReportPage> {
 
               const SizedBox(height: 25),
               
-              /** Badge de Localisation automatique */
+              /** Badge de Localisation Statique pour la démo */
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFDCFCE7), // Vert clair
+                  color: const Color(0xFFDCFCE7),
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: const Row(
@@ -149,12 +189,8 @@ class _AddReportPageState extends State<AddReportPage> {
                     Icon(Icons.location_on, color: Color(0xFF059669), size: 18),
                     SizedBox(width: 10),
                     Text(
-                      "Lieu : Rue NJA-NJA, Bali",
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF059669),
-                      ),
+                      "Localisation automatique activée",
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF059669)),
                     ),
                   ],
                 ),
@@ -162,7 +198,7 @@ class _AddReportPageState extends State<AddReportPage> {
 
               const SizedBox(height: 40),
 
-              /** Bouton Envoyer Jaune Hysacam */
+              /** Bouton Envoyer avec état de chargement (LOADING) */
               SizedBox(
                 width: double.infinity,
                 height: 65,
@@ -177,7 +213,10 @@ class _AddReportPageState extends State<AddReportPage> {
                     ),
                   ),
                   child: _isSending
-                      ? const CircularProgressIndicator(color: Color(0xFF059669), strokeWidth: 2)
+                      ? const SizedBox(
+                          width: 24, height: 24,
+                          child: CircularProgressIndicator(color: Color(0xFF059669), strokeWidth: 2),
+                        )
                       : const Text(
                           "ENVOYER À HYSACAM",
                           style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900, letterSpacing: 1),
@@ -191,12 +230,7 @@ class _AddReportPageState extends State<AddReportPage> {
                   onPressed: () => Navigator.pop(context),
                   child: Text(
                     "ANNULER",
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.grey[400],
-                      letterSpacing: 1,
-                    ),
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.grey[400], letterSpacing: 1),
                   ),
                 ),
               ),
@@ -207,50 +241,21 @@ class _AddReportPageState extends State<AddReportPage> {
     );
   }
 
-  /**
-   * Logique d'envoi du signalement.
-   */
-  Future<void> _submitReport() async {
-    if (_controller.selectedImage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Veuillez prendre une photo")));
-      return;
-    }
-    
-    setState(() => _isSending = true);
-    
-    // Simulation d'envoi
-    await Future.delayed(const Duration(seconds: 2));
-    
-    if (mounted) {
-      setState(() => _isSending = false);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Signalement envoyé avec succès !")));
-      Navigator.pop(context);
-    }
-  }
-
-  /** Label grisé pour les champs */
+  /** Labels stylisés */
   Widget _buildFieldLabel(String label) {
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 8),
       child: Text(
         label,
-        style: const TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w900,
-          color: Color(0xFF94A3B8),
-          letterSpacing: 1.0,
-        ),
+        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF94A3B8), letterSpacing: 1),
       ),
     );
   }
 
-  /** Champ de texte stylisé */
+  /** Champs de texte "Simple & Beau" */
   Widget _buildTextField({required TextEditingController controller, required String hintText, int maxLines = 1}) {
     return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(20),
-      ),
+      decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(20)),
       child: TextField(
         controller: controller,
         maxLines: maxLines,
