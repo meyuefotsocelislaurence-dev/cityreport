@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../controlers/home_controller.dart';
 import '../models/report_model.dart';
 import 'report_details_page.dart';
+import 'notifications_page.dart';
 
 /**
  * HomePage - Écran principal du Tableau de Bord Citoyen.
@@ -199,18 +200,16 @@ class _HomePageState extends State<HomePage> {
         children: [
           Row(
             children: [
-              /** Avatar Utilisateur */
+              /** Avatar Utilisateur (Icône universelle) */
               Container(
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: Colors.white24, width: 2),
-                  image: const DecorationImage(
-                    image: NetworkImage("https://ui-avatars.com/api/?name=Jean+Douala&background=FBBF24&color=059669&size=100"),
-                    fit: BoxFit.cover,
-                  ),
                 ),
+                child: const Icon(Icons.person_outline_rounded, color: Color(0xFF059669), size: 30),
               ),
               const SizedBox(width: 16),
               /** Salutations */
@@ -234,14 +233,22 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
-          /** Notification Badge */
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(15),
+          /** Notification Badge (Vers Alertes) */
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const NotificationsPage()),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: const Icon(Icons.notifications_none, color: Colors.white),
             ),
-            child: const Icon(Icons.notifications_none, color: Colors.white),
           ),
         ],
       ),
@@ -337,7 +344,7 @@ class _HomePageState extends State<HomePage> {
                 _buildStatusBadge(report.statut),
                 const SizedBox(height: 8),
                 Text(
-                  report.typeInsalubrite.toUpperCase(),
+                  (report.title ?? report.typeInsalubrite).toUpperCase(),
                   style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFF1F2937)),
                 ),
                 const SizedBox(height: 4),
