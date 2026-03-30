@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
-import '../controlers/settings_controller.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../controlers/auth_controller.dart';
 
+/**
+ * SettingsPage (Profil) - Espace personnel de l'éco-citoyen.
+ * 
+ * Affiche le résumé de l'engagement de l'utilisateur, ses points accumulés,
+ * et permet de gérer ses préférences ou de se déconnecter.
+ * Design conforme aux maquettes "Simple & Beau".
+ */
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
 
@@ -9,175 +17,222 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  final SettingsController _controller = SettingsController();
-  
-  // Variables d'état pour la simulation
-  bool _isDarkMode = false;
-  String _selectedLanguage = 'Français';
+  final AuthController _authController = AuthController();
 
   @override
   Widget build(BuildContext context) {
-    // Détection automatique pour le bouton si vous changez via le système
-    _isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final user = Supabase.instance.client.auth.currentUser;
+    final userName = user?.userMetadata?['name']?.toString().toUpperCase() ?? "JEAN DOUALA";
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Paramètres"),
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
-      ),
-      body: ListView(
-        children: [
-          const SizedBox(height: 20),
-          // Section Profil
-          const Center(
-            child: CircleAvatar(
-              radius: 50,
-              backgroundColor: Colors.green,
-              child: Icon(Icons.person, size: 50, color: Colors.white),
-            ),
-          ),
-          const Center(
-            child: Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text(
-                "Utilisateur CityReport",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-          const Divider(),
-
-          // --- SECTION APPARENCE (NOUVEAU) ---
-          const Padding(
-            padding: EdgeInsets.only(left: 16, top: 10, bottom: 5),
-            child: Text("Apparence", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
-          ),
-          ListTile(
-            leading: Icon(Icons.dark_mode, color: _isDarkMode ? Colors.orangeAccent : Colors.blueGrey),
-            title: const Text("Mode Sombre"),
-            subtitle: Text(_isDarkMode ? "Activé" : "Désactivé"),
-            trailing: Switch(
-              value: _isDarkMode,
-              onChanged: (val) {
-                setState(() {
-                  _isDarkMode = val;
-                });
-                // Conseil : Expliquez au jury que ThemeMode.system dans main.dart 
-                // permet à l'app de suivre les réglages du téléphone automatiquement.
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("L'application s'adapte aux thèmes de votre système.")),
-                );
-              },
-            ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.language, color: Colors.blue),
-            title: const Text("Langue de l'application"),
-            subtitle: Text(_selectedLanguage),
-            onTap: () {
-              _showLanguageDialog();
-            },
-          ),
-          const Divider(),
-
-          // Options de compte
-          const Padding(
-            padding: EdgeInsets.only(left: 16, top: 10, bottom: 5),
-            child: Text("Compte & Sécurité", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
-          ),
-          ListTile(
-            leading: const Icon(Icons.edit, color: Colors.green),
-            title: const Text("Modifier mon profil"),
-            onTap: () => _controller.updateProfile(context),
-          ),
-          ListTile(
-            leading: const Icon(Icons.notifications, color: Colors.green),
-            title: const Text("Notifications Push"),
-            trailing: Switch(value: true, onChanged: (val) {}),
-          ),
-          ListTile(
-            leading: const Icon(Icons.lock, color: Colors.green),
-            title: const Text("Changer le mot de passe"),
-            onTap: () {},
-          ),
-          
-          const Divider(),
-          
-          // Section Aide & Info
-          ListTile(
-            leading: const Icon(Icons.help_outline),
-            title: const Text("Aide et Support"),
-            onTap: () {},
-          ),
-          ListTile(
-            leading: const Icon(Icons.info_outline),
-            title: const Text("À propos de CityReport"),
-            subtitle: const Text("Version 1.0.0"),
-            onTap: () {},
-          ),
-
-          const Divider(),
-
-          // Bouton Déconnexion
-          ListTile(
-            leading: const Icon(Icons.exit_to_app, color: Colors.red),
-            title: const Text("Se déconnecter", style: TextStyle(color: Colors.red)),
-            onTap: () {
-              _showLogoutDialog(context);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Fonction pour le choix de la langue
-  void _showLanguageDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Choisir la langue"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
+      backgroundColor: Colors.white,
+      body: SingleChildScrollView(
+        child: Column(
           children: [
-            RadioListTile(
-              title: const Text("Français"),
-              value: "Français",
-              groupValue: _selectedLanguage,
-              onChanged: (val) {
-                setState(() => _selectedLanguage = val.toString());
-                Navigator.pop(context);
+            /** En-tête Vert Premium */
+            _buildProfileHeader(userName),
+            
+            /** Carte d'Impact (Points & KG) */
+            _buildImpactStatsCard(),
+            
+            const SizedBox(height: 40),
+            
+            /** Liste d'options de navigation */
+            _buildProfileMenuItem(
+              icon: Icons.assignment_outlined,
+              label: "MES SIGNALEMENTS",
+              onTap: () {
+                // Navigation vers l'historique (déjà géré par l'accueil)
               },
             ),
-            RadioListTile(
-              title: const Text("English"),
-              value: "English",
-              groupValue: _selectedLanguage,
-              onChanged: (val) {
-                setState(() => _selectedLanguage = val.toString());
-                Navigator.pop(context);
+            _buildProfileMenuItem(
+              icon: Icons.settings_outlined,
+              label: "PARAMÈTRES",
+              onTap: () {
+                // Options de réglages
               },
             ),
+            
+            const SizedBox(height: 10),
+            
+            /** Bouton Déconnexion (Rouge) */
+            _buildLogoutButton(context),
+            
+            const SizedBox(height: 100), // Espace pour la barre de navigation
           ],
         ),
       ),
     );
   }
 
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Déconnexion"),
-        content: const Text("Voulez-vous vraiment quitter l'application ?"),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annuler")),
-          TextButton(
-            onPressed: () => _controller.logout(context),
-            child: const Text("Confirmer", style: TextStyle(color: Colors.red)),
+  /**
+   * Construit la section supérieure avec l'avatar et le nom.
+   */
+  Widget _buildProfileHeader(String name) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(24, 80, 24, 60),
+      decoration: const BoxDecoration(
+        color: Color(0xFF059669), // Vert HYSACAM
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(40),
+          bottomRight: Radius.circular(40),
+        ),
+      ),
+      child: Column(
+        children: [
+          /** Avatar "JD" Jaune Hysacam */
+          Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFBBF24), // Jaune HYSACAM
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(color: Colors.white24, width: 4),
+            ),
+            child: Center(
+              child: Text(
+                name.length >= 2 ? name.substring(0, 2) : "JD",
+                style: const TextStyle(
+                  fontSize: 36,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF059669),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          /** Nom et Statut */
+          Text(
+            name,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const Text(
+            "ÉCO-CITOYEN DOUALA",
+            style: TextStyle(
+              color: Color(0xFFD1FAE5),
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 2,
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  /**
+   * Construit la carte flottante affichant les points et l'impact.
+   */
+  Widget _buildImpactStatsCard() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(30, -35, 30, 0),
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 30,
+            offset: const Offset(0, 15),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          _buildStatItem("POINTS", "450", const Color(0xFF059669)),
+          Container(width: 1, height: 40, color: const Color(0xFFF1F5F9)),
+          _buildStatItem("IMPACT", "-12Kg", const Color(0xFF1F2937)),
+        ],
+      ),
+    );
+  }
+
+  /** Élément de statistique pour la carte d'impact */
+  Widget _buildStatItem(String label, String value, Color valueColor) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF94A3B8),
+              letterSpacing: 1,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+              color: valueColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /** Item de menu cliquable stylisé */
+  Widget _buildProfileMenuItem({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: ListTile(
+        onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        leading: Icon(icon, color: const Color(0xFF1F2937)),
+        title: Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w900,
+            color: Color(0xFF1F2937),
+            letterSpacing: 1,
+          ),
+        ),
+        trailing: const Icon(Icons.chevron_right, color: Color(0xFF94A3B8)),
+      ),
+    );
+  }
+
+  /** Bouton de déconnexion spécifique (Rouge) */
+  Widget _buildLogoutButton(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFEF2F2),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: ListTile(
+        onTap: () => _authController.logout(context),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        leading: const Icon(Icons.logout_rounded, color: Color(0xFFEF4444)),
+        title: const Text(
+          "DÉCONNEXION",
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w900,
+            color: Color(0xFFEF4444),
+            letterSpacing: 1,
+          ),
+        ),
       ),
     );
   }

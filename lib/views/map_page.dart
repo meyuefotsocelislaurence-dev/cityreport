@@ -223,7 +223,7 @@ class _MapPageState extends State<MapPage> {
   Widget _buildStatusBadge(String status) {
     final isPending = status == "En attente";
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, py: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: isPending ? const Color(0xFFFEF3C7) : const Color(0xFFDCFCE7),
         borderRadius: BorderRadius.circular(20),

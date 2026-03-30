@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
 /**
- * NotificationsPage - Centre d'alertes citoyen.
+ * NotificationsPage - Centre de notifications citoyen.
  * 
- * Affiche les notifications relatives aux suivis de signalements 
- * (Changement de statut, intervention HYSACAM, gains de points).
+ * Affiche les alertes importantes relatives au ramassage des déchets,
+ * aux interventions de HYSACAM et aux récompenses gagnées.
+ * Design conforme aux maquettes "Simple & Beau".
  */
 class NotificationsPage extends StatelessWidget {
   const NotificationsPage({super.key});
@@ -12,109 +13,134 @@ class NotificationsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text(
-          "ALERTES",
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 2),
+      backgroundColor: Colors.white,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(30, 80, 30, 40),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              /** Titre de la page */
+              const Text(
+                "NOTIFICATIONS",
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF1F2937),
+                  letterSpacing: -1.0,
+                ),
+              ),
+              const SizedBox(height: 40),
+
+              /** Liste de Notifications */
+              _buildNotificationCard(
+                icon: Icons.check_circle_outline_rounded,
+                iconColor: const Color(0xFF059669),
+                title: "SIGNALEMENT RÉSOLU",
+                description: "Les ordures à Bali ont été ramassées avec succès. Merci !",
+                points: "+10 Eco-Points gagnés",
+              ),
+              
+              const SizedBox(height: 20),
+              
+              _buildNotificationCard(
+                icon: Icons.info_outline_rounded,
+                iconColor: const Color(0xFFFBBF24),
+                title: "PASSAGE HYSACAM",
+                description: "Le ramassage dans votre zone est prévu demain à 08:00.",
+              ),
+              
+              const SizedBox(height: 20),
+              
+              /** Notification Archivée (Optionnel) */
+              _buildNotificationCard(
+                icon: Icons.eco_outlined,
+                iconColor: Colors.blue,
+                title: "NOUVEAU BADGE",
+                description: "Vous avez débloqué le badge 'Citoyen Actif' !",
+              ),
+              
+              const SizedBox(height: 100), // Espace pour la navigation
+            ],
+          ),
         ),
-        elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF1F2937),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
-        children: [
-          _buildNotificationItem(
-            icon: Icons.check_circle_outline,
-            color: const Color(0xFF059669),
-            title: "Signalement traité !",
-            description: "HYSACAM a collecté les déchets à Akwa. Merci pour votre aide !",
-            time: "Il y a 2h",
-            isNew: true,
-          ),
-          _buildNotificationItem(
-            icon: Icons.local_shipping_outlined,
-            color: const Color(0xFFFBBF24),
-            title: "Camion en route",
-            description: "Une équipe arrive dans 15 min pour votre signalement à Bali.",
-            time: "Il y a 45 min",
-            isNew: true,
-          ),
-          _buildNotificationItem(
-            icon: Icons.card_giftcard_outlined,
-            color: Colors.blue,
-            title: "+10 Eco-Points gagnés",
-            description: "Félicitations ! Votre action citoyenne a été récompensée.",
-            time: "Hier",
-            isNew: false,
-          ),
-        ],
       ),
     );
   }
 
   /**
-   * Construit un élément de liste de notification avec badge "Nouveau".
+   * Construit une carte de notification stylisée selon la maquette.
    */
-  Widget _buildNotificationItem({
+  Widget _buildNotificationCard({
     required IconData icon,
-    required Color color,
+    required Color iconColor,
     required String title,
     required String description,
-    required String time,
-    required bool isNew,
+    String? points,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(25),
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 30,
+            offset: const Offset(0, 15),
+          ),
+        ],
         border: Border.all(color: const Color(0xFFF1F5F9)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /** Icône avec fond léger */
+          /** Icône avec fond léger circulaire */
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(15),
+              color: iconColor.withOpacity(0.05),
+              shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: color, size: 24),
+            child: Icon(icon, color: iconColor, size: 28),
           ),
-          const SizedBox(width: 16),
-          /** Core Text */
+          const SizedBox(width: 20),
+          /** Contenu de la Notification */
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      title.toUpperCase(),
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFF1F2937)),
-                    ),
-                    if (isNew)
-                      Container(
-                        width: 8, height: 8,
-                        decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
-                      ),
-                  ],
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF1F2937),
+                    letterSpacing: -0.2,
+                  ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
                   description,
-                  style: const TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w500, height: 1.4),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF94A3B8),
+                    fontWeight: FontWeight.w500,
+                    height: 1.4,
+                  ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  time,
-                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8)),
-                ),
+                /** Optionnel : Affichage des Eco-Points gagnés */
+                if (points != null) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    points,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF059669),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

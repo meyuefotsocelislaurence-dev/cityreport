@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../controlers/home_controller.dart';
 import '../models/report_model.dart';
+import 'report_details_page.dart';
 
 /**
  * HomePage - Écran principal du Tableau de Bord Citoyen.
@@ -62,7 +63,17 @@ class HomePage extends StatelessWidget {
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
-                  return _buildReportCard(reports[index]);
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ReportDetailsPage(report: reports[index]),
+                        ),
+                      );
+                    },
+                    child: _buildReportCard(reports[index]),
+                  );
                 },
                 childCount: reports.length,
               ),
@@ -257,7 +268,7 @@ class HomePage extends StatelessWidget {
   Widget _buildStatusBadge(String status) {
     final isPending = status == "En attente";
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, py: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: isPending ? const Color(0xFFFEF3C7) : const Color(0xFFDCFCE7),
         borderRadius: BorderRadius.circular(20),
