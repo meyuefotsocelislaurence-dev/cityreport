@@ -33,6 +33,8 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       extendBody: true, // Permet au contenu de passer sous la barre de navigation translucide
       body: IndexedStack(
@@ -61,7 +63,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
         notchMargin: 12,
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         elevation: 30,
         child: SizedBox(
           height: 70,

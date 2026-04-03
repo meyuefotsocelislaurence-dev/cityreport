@@ -108,8 +108,10 @@ class _AddReportPageState extends State<AddReportPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(30, 80, 30, 40),
@@ -117,12 +119,12 @@ class _AddReportPageState extends State<AddReportPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               /** Titre de la page */
-              const Text(
+              Text(
                 "NOUVEAU RAPPORT",
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w900,
-                  color: Color(0xFF1F2937),
+                  color: isDark ? Colors.white : const Color(0xFF1F2937),
                   letterSpacing: -1.0,
                 ),
               ),
@@ -135,10 +137,10 @@ class _AddReportPageState extends State<AddReportPage> {
                   width: double.infinity,
                   height: 250,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
+                    color: isDark ? const Color(0xFF121212) : const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(30),
                     border: Border.all(
-                      color: const Color(0xFFCBD5E1),
+                      color: isDark ? Colors.grey[800]! : const Color(0xFFCBD5E1),
                       width: 2,
                     ),
                   ),
@@ -169,11 +171,11 @@ class _AddReportPageState extends State<AddReportPage> {
 
               /** Formulaire */
               _buildFieldLabel("TITRE DU PROBLÈME"),
-              _buildTextField(controller: _titleController, hintText: "Ex: Poubelle débordante"),
+              _buildTextField(controller: _titleController, hintText: "Ex: Poubelle débordante", isDark: isDark),
               
               const SizedBox(height: 25),
               _buildFieldLabel("DESCRIPTION DÉTAILLÉE"),
-              _buildTextField(controller: _descriptionController, hintText: "Décrivez la situation...", maxLines: 4),
+              _buildTextField(controller: _descriptionController, hintText: "Décrivez la situation...", maxLines: 4, isDark: isDark),
 
               const SizedBox(height: 25),
               
@@ -181,7 +183,7 @@ class _AddReportPageState extends State<AddReportPage> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFDCFCE7),
+                  color: isDark ? Colors.green.withOpacity(0.1) : const Color(0xFFDCFCE7),
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: const Row(
@@ -253,16 +255,20 @@ class _AddReportPageState extends State<AddReportPage> {
   }
 
   /** Champs de texte "Simple & Beau" */
-  Widget _buildTextField({required TextEditingController controller, required String hintText, int maxLines = 1}) {
+  Widget _buildTextField({required TextEditingController controller, required String hintText, int maxLines = 1, required bool isDark}) {
     return Container(
-      decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF8FAFC), 
+        borderRadius: BorderRadius.circular(20),
+        border: isDark ? Border.all(color: Colors.grey[800]!) : null,
+      ),
       child: TextField(
         controller: controller,
         maxLines: maxLines,
-        style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
+        style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF1F2937)),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: TextStyle(color: Colors.grey[300], fontWeight: FontWeight.normal),
+          hintStyle: TextStyle(color: Colors.grey[400], fontWeight: FontWeight.normal),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.all(20),
         ),

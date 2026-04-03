@@ -63,16 +63,18 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
       appBar: AppBar(
         title: Text(
           (widget.report.title ?? "SIGNALEMENT").toUpperCase(),
           style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1),
         ),
         elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF1F2937),
+        backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
+        foregroundColor: isDark ? Colors.white : const Color(0xFF1F2937),
         centerTitle: true,
       ),
       body: Column(
@@ -81,7 +83,7 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
           _buildMapHeader(),
           
           /** En-tête Statut & Détails */
-          _buildStatusHeader(),
+          _buildStatusHeader(isDark),
           
           const Divider(height: 1, color: Color(0xFFF1F5F9)),
 
@@ -101,13 +103,14 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
                         message: comment.content,
                         time: DateFormat('HH:mm').format(comment.createdAt),
                         isAdmin: comment.isAdmin,
+                        isDark: isDark,
                       );
                     },
                   ),
           ),
 
           /** Champ de saisie du message */
-          _buildMessageInput(),
+          _buildMessageInput(isDark),
         ],
       ),
     );
@@ -150,16 +153,17 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
    * UI : Message si aucune discussion.
    */
   Widget _buildEmptyMessages() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.chat_bubble_outline_rounded, size: 40, color: Colors.grey[200]),
+          Icon(Icons.chat_bubble_outline_rounded, size: 40, color: isDark ? Colors.grey[800] : Colors.grey[200]),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             "Aucun message pour le moment.\nDites bonjour à l'équipe HYSACAM !",
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
+            style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[500] : const Color(0xFF94A3B8), fontWeight: FontWeight.w500),
           ),
         ],
       ),
@@ -169,14 +173,14 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
   /**
    * Construit l'en-tête avec les détails du signalement.
    */
-  Widget _buildStatusHeader() {
+  Widget _buildStatusHeader(bool isDark) {
     return Container(
       padding: const EdgeInsets.all(20),
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: isDark ? const Color(0xFF121212) : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(25),
-        border: Border.all(color: const Color(0xFFF1F5F9)),
+        border: Border.all(color: isDark ? Colors.grey[800]! : const Color(0xFFF1F5F9)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -201,7 +205,7 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
                   children: [
                     Text(
                       (widget.report.title ?? widget.report.typeInsalubrite).toUpperCase(),
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFF1F2937)),
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: isDark ? Colors.white : const Color(0xFF1F2937)),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -216,7 +220,7 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
           const SizedBox(height: 12),
           Text(
             widget.report.description,
-            style: const TextStyle(fontSize: 13, color: Color(0xFF475569), height: 1.4),
+            style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : const Color(0xFF475569), height: 1.4),
           ),
         ],
       ),
@@ -231,6 +235,7 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
     required String message,
     required String time,
     required bool isAdmin,
+    required bool isDark,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
@@ -241,7 +246,7 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
             padding: const EdgeInsets.all(16),
             constraints: const BoxConstraints(maxWidth: 280),
             decoration: BoxDecoration(
-              color: isAdmin ? const Color(0xFFF1F5F9) : const Color(0xFF059669),
+              color: isAdmin ? (isDark ? Colors.grey[800] : const Color(0xFFF1F5F9)) : const Color(0xFF059669),
               borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(20),
                 topRight: const Radius.circular(20),
@@ -254,7 +259,7 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isAdmin ? const Color(0xFF1F2937) : Colors.white,
+                color: isAdmin ? (isDark ? Colors.white : const Color(0xFF1F2937)) : Colors.white,
               ),
             ),
           ),
@@ -271,19 +276,19 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
   /**
    * Champ de saisie du message.
    */
-  Widget _buildMessageInput() {
+  Widget _buildMessageInput(bool isDark) {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 10, 24, 30),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF121212) : Colors.white,
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, -10)),
+          BoxShadow(color: Colors.black.withOpacity(isDark ? 0.2 : 0.05), blurRadius: 20, offset: const Offset(0, -10)),
         ],
       ),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: const Color(0xFFF1F5F9),
+          color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF1F5F9),
           borderRadius: BorderRadius.circular(25),
         ),
         child: Row(
@@ -293,9 +298,10 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: TextField(
                   controller: _messageController,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                  decoration: InputDecoration(
                     hintText: "Écrire au support...",
-                    hintStyle: TextStyle(fontSize: 13, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
+                    hintStyle: TextStyle(fontSize: 13, color: isDark ? Colors.grey[600] : const Color(0xFF94A3B8), fontWeight: FontWeight.w500),
                     border: InputBorder.none,
                   ),
                 ),

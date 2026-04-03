@@ -70,8 +70,10 @@ class _SplashPageState extends State<SplashPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF059669), // Vert Hysacam
+      backgroundColor: isDark ? const Color(0xFF1E1E1E) : const Color(0xFF059669), // Sombre ou Vert Hysacam
       body: Stack(
         children: [
           // Contenu Central
@@ -83,7 +85,7 @@ class _SplashPageState extends State<SplashPage> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF121212) : Colors.white,
                     borderRadius: BorderRadius.circular(30),
                     boxShadow: [
                       BoxShadow(

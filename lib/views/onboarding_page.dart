@@ -56,8 +56,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       body: Stack(
         children: [
           /** Content PageView */
@@ -114,8 +116,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1F2937), // hysacamDark
-                      foregroundColor: Colors.white,
+                      backgroundColor: isDark ? Colors.white : const Color(0xFF1F2937),
+                      foregroundColor: isDark ? const Color(0xFF1F2937) : Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
@@ -159,6 +161,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   Widget _buildOnboardingScreen(int index) {
     final data = _onboardingData[index];
     final Color mainColor = Color(int.parse(data['color']!));
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Container(
       padding: const EdgeInsets.all(40),
@@ -184,10 +187,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
           Text(
             data['title']!,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.w900,
-              color: Color(0xFF1F2937),
+              color: isDark ? Colors.white : const Color(0xFF1F2937),
               letterSpacing: -1.0,
               height: 1.1,
             ),

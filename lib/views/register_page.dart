@@ -36,8 +36,10 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(30, 100, 30, 40),
@@ -45,12 +47,12 @@ class _RegisterPageState extends State<RegisterPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               /** Titre de Bienvenue */
-              const Text(
+              Text(
                 "Bienvenue.",
                 style: TextStyle(
                   fontSize: 42,
                   fontWeight: FontWeight.w900,
-                  color: Color(0xFF1F2937),
+                  color: isDark ? Colors.white : const Color(0xFF1F2937),
                   letterSpacing: -1.5,
                 ),
               ),
@@ -72,6 +74,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 controller: _authController.nameController,
                 hintText: "Jean Douala",
                 icon: Icons.person_outline,
+                isDark: isDark,
               ),
               
               const SizedBox(height: 25),
@@ -81,6 +84,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 hintText: "+237 600 000 000",
                 icon: Icons.phone_outlined,
                 keyboardType: TextInputType.phone,
+                isDark: isDark,
               ),
 
               const SizedBox(height: 25),
@@ -90,6 +94,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 hintText: "jean@exemple.com",
                 icon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
+                isDark: isDark,
               ),
 
               const SizedBox(height: 25),
@@ -99,6 +104,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 hintText: "••••••••",
                 icon: Icons.lock_outline,
                 isPassword: true,
+                isDark: isDark,
               ),
 
               const SizedBox(height: 40),
@@ -183,17 +189,19 @@ class _RegisterPageState extends State<RegisterPage> {
     required IconData icon,
     bool isPassword = false,
     TextInputType keyboardType = TextInputType.text,
+    required bool isDark,
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(20),
+        border: isDark ? Border.all(color: Colors.grey[800]!) : null,
       ),
       child: TextField(
         controller: controller,
         obscureText: isPassword,
         keyboardType: keyboardType,
-        style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
+        style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF1F2937)),
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(color: Colors.grey[300], fontWeight: FontWeight.w500),

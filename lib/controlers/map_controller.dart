@@ -31,7 +31,7 @@ class MapController {
       return reports;
     } catch (e) {
       print('Erreur de récupération des signalements: $e');
-      return []; // Retourne une liste vide en cas d'erreur
+      return [];
     }
   }
 
