@@ -32,7 +32,7 @@ class _SettingsPageState extends State<SettingsPage> {
    * Charge les données de profil et d'impact au démarrage.
    */
   Future<void> _loadProfileData() async {
-    await _homeController.fetchRecentReports();
+    await _homeController.fetchUserStats();
     if (mounted) {
       setState(() => _isLoading = false);
     }
