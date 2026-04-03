@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../controlers/auth_controller.dart';
 import '../controlers/home_controller.dart';
+import '../main.dart'; // Pour le themeNotifier
+import 'my_reports_page.dart';
 
 /**
  * SettingsPage (Profil) - Espace personnel de l'éco-citoyen.
@@ -43,8 +45,10 @@ class _SettingsPageState extends State<SettingsPage> {
     final user = Supabase.instance.client.auth.currentUser;
     final userName = user?.userMetadata?['name']?.toString().toUpperCase() ?? "UTILISATEUR";
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF8FAFC),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -63,15 +67,18 @@ class _SettingsPageState extends State<SettingsPage> {
               icon: Icons.assignment_outlined,
               label: "MES SIGNALEMENTS",
               onTap: () {
-                // Navigation vers l'historique (déjà géré par l'accueil)
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MyReportsPage()),
+                );
               },
+              isDark: isDark,
             ),
             _buildProfileMenuItem(
               icon: Icons.settings_outlined,
               label: "PARAMÈTRES",
-              onTap: () {
-                // Options de réglages
-              },
+              onTap: () => _showSettingsBottomSheet(context),
+              isDark: isDark,
             ),
             
             const SizedBox(height: 10),
@@ -107,19 +114,12 @@ class _SettingsPageState extends State<SettingsPage> {
             width: 100,
             height: 100,
             decoration: BoxDecoration(
-              color: const Color(0xFFFBBF24), // Jaune HYSACAM
+              color: Colors.white,
               borderRadius: BorderRadius.circular(30),
               border: Border.all(color: Colors.white24, width: 4),
             ),
-            child: Center(
-              child: Text(
-                name.length >= 2 ? name.substring(0, 2) : "JD",
-                style: const TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFF059669),
-                ),
-              ),
+            child: const Center(
+              child: Icon(Icons.person_outline_rounded, color: Color(0xFF059669), size: 50),
             ),
           ),
           const SizedBox(height: 20),
@@ -157,7 +157,7 @@ class _SettingsPageState extends State<SettingsPage> {
         margin: const EdgeInsets.symmetric(horizontal: 30),
         padding: const EdgeInsets.symmetric(vertical: 24),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E1E1E) : Colors.white,
           borderRadius: BorderRadius.circular(30),
           boxShadow: [
             BoxShadow(
@@ -211,11 +211,12 @@ class _SettingsPageState extends State<SettingsPage> {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
+    required bool isDark,
   }) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(20),
       ),
       child: ListTile(
@@ -224,10 +225,10 @@ class _SettingsPageState extends State<SettingsPage> {
         leading: Icon(icon, color: const Color(0xFF1F2937)),
         title: Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w900,
-            color: Color(0xFF1F2937),
+            color: isDark ? Colors.white : const Color(0xFF1F2937),
             letterSpacing: 1,
           ),
         ),
@@ -245,7 +246,7 @@ class _SettingsPageState extends State<SettingsPage> {
         borderRadius: BorderRadius.circular(20),
       ),
       child: ListTile(
-        onTap: () => _authController.logout(context),
+        onTap: () => _showLogoutDialog(context),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         leading: const Icon(Icons.logout_rounded, color: Color(0xFFEF4444)),
         title: const Text(
@@ -258,6 +259,96 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
         ),
       ),
+    );
+  }
+
+  /** Affiche un BottomSheet pour les paramètres (Mode Sombre) */
+  void _showSettingsBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E1E1E) : Colors.white,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(30),
+              topRight: Radius.circular(30),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
+              const SizedBox(height: 24),
+              const Text("PARAMÈTRES", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1)),
+              const SizedBox(height: 24),
+              ValueListenableBuilder<ThemeMode>(
+                valueListenable: themeNotifier,
+                builder: (context, currentMode, child) {
+                  final isDark = currentMode == ThemeMode.dark || 
+                    (currentMode == ThemeMode.system && MediaQuery.of(context).platformBrightness == Brightness.dark);
+                    
+                  return SwitchListTile(
+                    title: const Text("Mode Sombre", style: TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: const Text("Apparence de l'application", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    value: isDark,
+                    activeColor: const Color(0xFF059669),
+                    onChanged: (val) {
+                      themeNotifier.value = val ? ThemeMode.dark : ThemeMode.light;
+                    },
+                    secondary: Icon(isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded),
+                  );
+                },
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /** Affiche une boîte de dialogue de confirmation avant déconnexion */
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444)),
+              SizedBox(width: 10),
+              Text("Déconnexion", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+            ],
+          ),
+          content: const Text(
+            "Êtes-vous sûr de vouloir vous déconnecter de CityReport ?",
+            style: TextStyle(fontSize: 14),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("ANNULER", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context); // Ferme la dialog
+                _authController.logout(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEF4444),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              child: const Text("SE DÉCONNECTER", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
     );
   }
 }

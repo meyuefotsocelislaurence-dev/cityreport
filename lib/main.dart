@@ -26,66 +26,76 @@ Future<void> main() async {
 
 final supabase = Supabase.instance.client;
 
+/** Notifier global pour gérer le changement de thème instantané */
+final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.system);
+
 class CityReportApp extends StatelessWidget {
   const CityReportApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'CityReport',
-      debugShowCheckedModeBanner: false,
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeNotifier,
+      builder: (_, ThemeMode currentMode, __) {
+        return MaterialApp(
+          title: 'CityReport',
+          debugShowCheckedModeBanner: false,
 
-      /** --- 1. CONFIGURATION DU THÈME CLAIR ---  */
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF059669), // Vert Hysacam
-          brightness: Brightness.light, 
-          primary: const Color(0xFF059669),
-          secondary: const Color(0xFFFBBF24), // Jaune Hysacam
-        ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF059669),
-          foregroundColor: Colors.white,
-          centerTitle: true,
-          elevation: 0,
-        ),
-      ),
+          /** --- 1. CONFIGURATION DU THÈME CLAIR ---  */
+          theme: ThemeData(
+            useMaterial3: true,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF059669), // Vert Hysacam
+              brightness: Brightness.light, 
+              primary: const Color(0xFF059669),
+              secondary: const Color(0xFFFBBF24), // Jaune Hysacam
+            ),
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Color(0xFF059669),
+              foregroundColor: Colors.white,
+              centerTitle: true,
+              elevation: 0,
+            ),
+            scaffoldBackgroundColor: const Color(0xFFF8FAFC),
+          ),
 
-      // --- 2. CONFIGURATION DU THÈME SOMBRE ---
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF059669),
-          brightness: Brightness.dark,
-          primary: const Color(0xFF059669),
-          secondary: const Color(0xFFFBBF24),
-          surface: const Color(0xFF121212),
-        ),
-        appBarTheme: AppBarTheme(
-          backgroundColor: Colors.grey[900],
-          foregroundColor: Colors.white,
-          centerTitle: true,
-          elevation: 0,
-        ),
-      ),
+          // --- 2. CONFIGURATION DU THÈME SOMBRE ---
+          darkTheme: ThemeData(
+            useMaterial3: true,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF059669),
+              brightness: Brightness.dark,
+              primary: const Color(0xFF059669),
+              secondary: const Color(0xFFFBBF24),
+              surface: const Color(0xFF121212),
+            ),
+            appBarTheme: AppBarTheme(
+              backgroundColor: Colors.grey[900],
+              foregroundColor: Colors.white,
+              centerTitle: true,
+              elevation: 0,
+            ),
+            scaffoldBackgroundColor: const Color(0xFF121212),
+          ),
 
-      themeMode: ThemeMode.system,
+          themeMode: currentMode,
 
-      /** Point d'entrée : On commence toujours par le Splash Screen */
-      home: const SplashPage(),
+          /** Point d'entrée : On commence toujours par le Splash Screen */
+          home: const SplashPage(),
 
-      routes: {
-        '/splash': (context) => const SplashPage(),
-        '/onboarding': (context) => const OnboardingPage(),
-        '/login': (context) => const LoginPage(),
-        '/register': (context) => const RegisterPage(),
-        '/main': (context) => const MainNavigationPage(),
-        '/add-report': (context) => const AddReportPage(),
-      },
+          routes: {
+            '/splash': (context) => const SplashPage(),
+            '/onboarding': (context) => const OnboardingPage(),
+            '/login': (context) => const LoginPage(),
+            '/register': (context) => const RegisterPage(),
+            '/main': (context) => const MainNavigationPage(),
+            '/add-report': (context) => const AddReportPage(),
+          },
 
-      onUnknownRoute: (settings) {
-        return MaterialPageRoute(builder: (context) => const LoginPage());
+          onUnknownRoute: (settings) {
+            return MaterialPageRoute(builder: (context) => const LoginPage());
+          },
+        );
       },
     );
   }
