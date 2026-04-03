@@ -61,8 +61,10 @@ class _MapPageState extends State<MapPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
       body: Stack(
         children: [
           /** Moteur Cartographique (OSM) */
@@ -102,7 +104,7 @@ class _MapPageState extends State<MapPage> {
             top: 60,
             left: 20,
             right: 20,
-            child: _buildSearchBar(),
+            child: _buildSearchBar(isDark),
           ),
 
           /** CARTE DE PRÉVISUALISATION (Bottom) */
@@ -111,7 +113,7 @@ class _MapPageState extends State<MapPage> {
               bottom: 110, // Juste au dessus de la barre de navigation
               left: 20,
               right: 20,
-              child: _buildReportPreviewCard(_selectedReport!),
+              child: _buildReportPreviewCard(_selectedReport!, isDark),
             ),
           
           /** BOUTON DE LOCALISATION */
@@ -121,7 +123,8 @@ class _MapPageState extends State<MapPage> {
             child: FloatingActionButton(
               heroTag: "map_location_fab",
               onPressed: () => _internalMapController.move(_initialLocation, 14.0),
-              backgroundColor: Colors.white,
+              backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+              foregroundColor: const Color(0xFF059669),
               elevation: 4,
               mini: true,
               child: const Icon(Icons.my_location, color: Color(0xFF059669)),
@@ -159,12 +162,12 @@ class _MapPageState extends State<MapPage> {
   }
 
   /** UI : Barre de recherche moderne */
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(bool isDark) {
     return Container(
       height: 60,
       padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -174,31 +177,32 @@ class _MapPageState extends State<MapPage> {
           ),
         ],
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.search, color: Color(0xFF94A3B8)),
-          SizedBox(width: 15),
+          Icon(Icons.search, color: isDark ? Colors.grey[400] : const Color(0xFF94A3B8)),
+          const SizedBox(width: 15),
           Expanded(
             child: TextField(
+              style: TextStyle(color: isDark ? Colors.white : Colors.black),
               decoration: InputDecoration(
                 hintText: "Rechercher un quartier...",
-                hintStyle: TextStyle(color: Color(0xFF94A3B8), fontWeight: FontWeight.normal),
+                hintStyle: TextStyle(color: isDark ? Colors.grey[600] : const Color(0xFF94A3B8), fontWeight: FontWeight.normal),
                 border: InputBorder.none,
               ),
             ),
           ),
-          Icon(Icons.mic_none, color: Color(0xFF94A3B8)),
+          Icon(Icons.mic_none, color: isDark ? Colors.grey[400] : const Color(0xFF94A3B8)),
         ],
       ),
     );
   }
 
   /** UI : Carte flottante de prévisualisation du signalement */
-  Widget _buildReportPreviewCard(ReportModel report) {
+  Widget _buildReportPreviewCard(ReportModel report, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(25),
         boxShadow: [
           BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 40, offset: const Offset(0, 15)),
@@ -218,7 +222,7 @@ class _MapPageState extends State<MapPage> {
               children: [
                 Text(
                   report.typeInsalubrite.toUpperCase(),
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFF1F2937)),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: isDark ? Colors.white : const Color(0xFF1F2937)),
                 ),
                 const SizedBox(height: 4),
                 Text(

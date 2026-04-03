@@ -44,8 +44,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(30, 80, 30, 40),
@@ -53,12 +55,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               /** Titre de la page */
-              const Text(
+              Text(
                 "NOTIFICATIONS",
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.w900,
-                  color: Color(0xFF1F2937),
+                  color: isDark ? Colors.white : const Color(0xFF1F2937),
                   letterSpacing: -1.0,
                 ),
               ),
@@ -70,6 +72,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 iconColor: const Color(0xFF059669),
                 title: "BIENVENUE SUR CITYREPORT",
                 description: "Merci de rejoindre la communauté pour une ville de Douala plus propre.",
+                isDark: isDark,
               ),
               
               const SizedBox(height: 20),
@@ -91,6 +94,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                         title: "SIGNALEMENT ${report.statut.toUpperCase()}",
                         description: "Votre signalement '${report.typeInsalubrite}' est ${report.statut.toLowerCase()}.",
                         points: isResolved ? "+50 Eco-Points gagnés" : null,
+                        isDark: isDark,
                       ),
                     );
                   }).toList(),
@@ -130,11 +134,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
     required String title,
     required String description,
     String? points,
+    required bool isDark,
   }) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
@@ -143,7 +148,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
             offset: const Offset(0, 15),
           ),
         ],
-        border: Border.all(color: const Color(0xFFF1F5F9)),
+        border: Border.all(color: isDark ? Colors.grey[800]! : const Color(0xFFF1F5F9)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,19 +170,19 @@ class _NotificationsPageState extends State<NotificationsPage> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w900,
-                    color: Color(0xFF1F2937),
+                    color: isDark ? Colors.white : const Color(0xFF1F2937),
                     letterSpacing: -0.2,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   description,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: Color(0xFF94A3B8),
+                    color: isDark ? Colors.grey[400] : const Color(0xFF94A3B8),
                     fontWeight: FontWeight.w500,
                     height: 1.4,
                   ),

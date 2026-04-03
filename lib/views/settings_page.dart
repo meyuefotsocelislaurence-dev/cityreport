@@ -262,51 +262,136 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  /** Affiche un BottomSheet pour les paramètres (Mode Sombre) */
+  /** Affiche un menu Paramètres glissant complet */
   void _showSettingsBottomSheet(BuildContext context) {
+    bool pushNotificationsEnabled = true;
+
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E1E1E) : Colors.white,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(30),
-              topRight: Radius.circular(30),
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
-              const SizedBox(height: 24),
-              const Text("PARAMÈTRES", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1)),
-              const SizedBox(height: 24),
-              ValueListenableBuilder<ThemeMode>(
-                valueListenable: themeNotifier,
-                builder: (context, currentMode, child) {
-                  final isDark = currentMode == ThemeMode.dark || 
-                    (currentMode == ThemeMode.system && MediaQuery.of(context).platformBrightness == Brightness.dark);
-                    
-                  return SwitchListTile(
-                    title: const Text("Mode Sombre", style: TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: const Text("Apparence de l'application", style: TextStyle(fontSize: 12, color: Colors.grey)),
-                    value: isDark,
-                    activeColor: const Color(0xFF059669),
-                    onChanged: (val) {
-                      themeNotifier.value = val ? ThemeMode.dark : ThemeMode.light;
-                    },
-                    secondary: Icon(isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded),
-                  );
-                },
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+            final bgColor = isDarkTheme ? const Color(0xFF1E1E1E) : Colors.white;
+            final textColor = isDarkTheme ? Colors.white : const Color(0xFF1F2937);
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.85,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(30),
+                  topRight: Radius.circular(30),
+                ),
               ),
-              const SizedBox(height: 24),
-            ],
-          ),
+              child: Column(
+                children: [
+                  Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
+                  const SizedBox(height: 24),
+                  Text("PARAMÈTRES", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: textColor, letterSpacing: 1)),
+                  const SizedBox(height: 30),
+                  
+                  Expanded(
+                    child: ListView(
+                      children: [
+                        /** SECTION: APPARENCE */
+                        _buildSettingSectionTitle("APPARENCE", isDarkTheme),
+                        ValueListenableBuilder<ThemeMode>(
+                          valueListenable: themeNotifier,
+                          builder: (context, currentMode, child) {
+                            final isDark = currentMode == ThemeMode.dark || 
+                              (currentMode == ThemeMode.system && MediaQuery.of(context).platformBrightness == Brightness.dark);
+                            return SwitchListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: Text("Mode Sombre", style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
+                              subtitle: const Text("Apparence globale de l'app", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                              value: isDark,
+                              activeColor: const Color(0xFF059669),
+                              onChanged: (val) {
+                                themeNotifier.value = val ? ThemeMode.dark : ThemeMode.light;
+                                // Forcer le rafraîchissement local du BottomSheet pour la couleur des textes
+                                setState(() {});
+                              },
+                              secondary: Icon(isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded, color: isDark ? Colors.white : null),
+                            );
+                          },
+                        ),
+                        const Divider(height: 30, color: Colors.grey, thickness: 0.2),
+
+                        /** SECTION: NOTIFICATIONS */
+                        _buildSettingSectionTitle("NOTIFICATIONS", isDarkTheme),
+                        SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text("Alertes Push", style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
+                          subtitle: const Text("Suivi des ramassages", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                          value: pushNotificationsEnabled,
+                          activeColor: const Color(0xFF059669),
+                          onChanged: (val) {
+                            setState(() => pushNotificationsEnabled = val);
+                          },
+                          secondary: Icon(Icons.notifications_active_rounded, color: isDarkTheme ? Colors.white : null),
+                        ),
+                        const Divider(height: 30, color: Colors.grey, thickness: 0.2),
+
+                        /** SECTION: ASSISTANCE & LÉGAL */
+                        _buildSettingSectionTitle("ASSISTANCE", isDarkTheme),
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Icon(Icons.help_outline_rounded, color: isDarkTheme ? Colors.white : null),
+                          title: Text("Centre d'Aide (FAQ)", style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
+                          trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                          onTap: () {}, // Fake action
+                        ),
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Icon(Icons.shield_outlined, color: isDarkTheme ? Colors.white : null),
+                          title: Text("Politique de confidentialité", style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
+                          trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                          onTap: () {}, // Fake action
+                        ),
+                        const SizedBox(height: 40),
+                        
+                        /** LÉGAL / SUPPRESSION DE COMPTE */
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(Icons.no_accounts_rounded, color: Colors.red),
+                          title: const Text("Supprimer mon compte", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+                          onTap: () {
+                            Navigator.pop(context); // Quitter le bottomsheet
+                            // Pour afficher qu'on ne peut pas le faire facilement :
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Contactez le support Hysacam pour supprimer le compte.")));
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+                  Text("CityReport v1.0.0", style: TextStyle(fontSize: 10, color: Colors.grey[500], fontWeight: FontWeight.bold)),
+                ],
+              ),
+            );
+          }
         );
       },
+    );
+  }
+
+  Widget _buildSettingSectionTitle(String title, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15, top: 10),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w900,
+          color: Color(0xFF059669),
+          letterSpacing: 2.0,
+        ),
+      ),
     );
   }
 

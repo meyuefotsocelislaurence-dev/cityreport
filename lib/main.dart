@@ -27,7 +27,7 @@ Future<void> main() async {
 final supabase = Supabase.instance.client;
 
 /** Notifier global pour gérer le changement de thème instantané */
-final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.system);
+final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 
 class CityReportApp extends StatelessWidget {
   const CityReportApp({super.key});

@@ -64,19 +64,20 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final user = Supabase.instance.client.auth.currentUser;
     final filteredReports = _getFilteredReports();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF8FAFC),
       body: RefreshIndicator(
         onRefresh: _loadData,
         color: const Color(0xFF059669),
         child: CustomScrollView(
           slivers: [
             /** Section En-tête Dynamique */
-            SliverToBoxAdapter(child: _buildHeader(user)),
+            SliverToBoxAdapter(child: _buildHeader(user, isDark)),
             
             /** Section Statistiques d'Impact (Carte Flottante) */
-            SliverToBoxAdapter(child: _buildImpactCard(_controller)),
+            SliverToBoxAdapter(child: _buildImpactCard(_controller, isDark)),
             
             /** Section Filtres Communautaires */
             SliverToBoxAdapter(
@@ -86,9 +87,9 @@ class _HomePageState extends State<HomePage> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      _buildFilterChip("TOUT", Icons.all_inclusive_rounded),
-                      _buildFilterChip("MOI", Icons.person_pin_rounded),
-                      _buildFilterChip("RÉSOLU", Icons.check_circle_outline_rounded),
+                      _buildFilterChip("TOUT", Icons.all_inclusive_rounded, isDark),
+                      _buildFilterChip("MOI", Icons.person_pin_rounded, isDark),
+                      _buildFilterChip("RÉSOLU", Icons.check_circle_outline_rounded, isDark),
                     ],
                   ),
                 ),
@@ -140,7 +141,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                         );
                       },
-                      child: _buildReportCard(filteredReports[index]),
+                      child: _buildReportCard(filteredReports[index], isDark),
                     );
                   },
                   childCount: filteredReports.length,
@@ -156,8 +157,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   /** UI : Chip de filtre personnalisé HYSACAM */
-  Widget _buildFilterChip(String label, IconData icon) {
+  Widget _buildFilterChip(String label, IconData icon, bool isDark) {
     final isSelected = _selectedFilter == label;
+    // La couleur de fond non-sélectionnée s'adapte au mode sombre
+    final bgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    // Si c'est sélectionné, l'intérieur est vert (clair) avec un texte blanc. Sauf si on force.
+    
     return Padding(
       padding: const EdgeInsets.only(right: 12),
       child: ChoiceChip(
@@ -170,11 +175,11 @@ class _HomePageState extends State<HomePage> {
         ),
         selected: isSelected,
         onSelected: (val) => setState(() => _selectedFilter = label),
-        backgroundColor: Colors.white,
+        backgroundColor: bgColor,
         selectedColor: const Color(0xFF059669),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
-          side: BorderSide(color: isSelected ? Colors.transparent : const Color(0xFFE2E8F0)),
+          side: BorderSide(color: isSelected ? Colors.transparent : (isDark ? Colors.grey[800]! : const Color(0xFFE2E8F0))),
         ),
         showCheckmark: false,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -185,7 +190,7 @@ class _HomePageState extends State<HomePage> {
   /**
    * Construit l'en-tête de la page avec les infos utilisateur.
    */
-  Widget _buildHeader(User? user) {
+  Widget _buildHeader(User? user, bool isDark) {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 70, 24, 40),
       decoration: const BoxDecoration(
@@ -258,14 +263,14 @@ class _HomePageState extends State<HomePage> {
   /**
    * Construit la carte d'impact citoyen (Eco-Points / KG CO2).
    */
-  Widget _buildImpactCard(HomeController controller) {
+  Widget _buildImpactCard(HomeController controller, bool isDark) {
     return Transform.translate(
       offset: const Offset(0, -25),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 24),
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
           borderRadius: BorderRadius.circular(30),
           boxShadow: [
             BoxShadow(
@@ -274,14 +279,14 @@ class _HomePageState extends State<HomePage> {
               offset: const Offset(0, 15),
             ),
           ],
-          border: Border.all(color: const Color(0xFFF1F5F9)),
+          border: Border.all(color: isDark ? Colors.grey[800]! : const Color(0xFFF1F5F9)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildImpactItem("Points", controller.getEcoPoints().toString(), Icons.emoji_events_outlined, const Color(0xFFFBBF24)),
-            Container(width: 1, height: 40, color: const Color(0xFFF1F5F9)),
-            _buildImpactItem("Impact", "${controller.getCo2Impact()} Kg", Icons.eco_outlined, const Color(0xFF059669)),
+            _buildImpactItem("Points", controller.getEcoPoints().toString(), Icons.emoji_events_outlined, const Color(0xFFFBBF24), isDark),
+            Container(width: 1, height: 40, color: isDark ? Colors.grey[800] : const Color(0xFFF1F5F9)),
+            _buildImpactItem("Impact", "${controller.getCo2Impact()} Kg", Icons.eco_outlined, const Color(0xFF059669), isDark),
           ],
         ),
       ),
@@ -291,7 +296,7 @@ class _HomePageState extends State<HomePage> {
   /**
    * Élément individuel d'impact (icône + libellé).
    */
-  Widget _buildImpactItem(String label, String value, IconData icon, Color color) {
+  Widget _buildImpactItem(String label, String value, IconData icon, Color color, bool isDark) {
     return Column(
       children: [
         Row(
@@ -302,7 +307,7 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         const SizedBox(height: 4),
-        Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF1F2937))),
+        Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: isDark ? Colors.white : const Color(0xFF1F2937))),
       ],
     );
   }
@@ -310,14 +315,14 @@ class _HomePageState extends State<HomePage> {
   /**
    * Construit une carte stylisée pour un signalement.
    */
-  Widget _buildReportCard(ReportModel report) {
+  Widget _buildReportCard(ReportModel report, bool isDark) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(25),
-        border: Border.all(color: const Color(0xFFF1F5F9)),
+        border: Border.all(color: isDark ? Colors.grey[800]! : const Color(0xFFF1F5F9)),
       ),
       child: Row(
         children: [
@@ -345,7 +350,7 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(height: 8),
                 Text(
                   (report.title ?? report.typeInsalubrite).toUpperCase(),
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFF1F2937)),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: isDark ? Colors.white : const Color(0xFF1F2937)),
                 ),
                 const SizedBox(height: 4),
                 Row(

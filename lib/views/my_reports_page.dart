@@ -58,7 +58,10 @@ class _MyReportsPageState extends State<MyReportsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text(
           "MES SIGNALEMENTS",
@@ -72,7 +75,7 @@ class _MyReportsPageState extends State<MyReportsPage> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Color(0xFF059669)))
           : _myReports.isEmpty
-              ? _buildEmptyState()
+              ? _buildEmptyState(isDark)
               : RefreshIndicator(
                   color: const Color(0xFF059669),
                   onRefresh: _fetchMyReports,
@@ -98,16 +101,16 @@ class _MyReportsPageState extends State<MyReportsPage> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(bool isDark) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.assignment_outlined, size: 60, color: Colors.grey[300]),
+          Icon(Icons.assignment_outlined, size: 60, color: isDark ? Colors.grey[800] : Colors.grey[300]),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             "Vous n'avez aucun signalement pour le moment.",
-            style: TextStyle(color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
+            style: TextStyle(color: isDark ? Colors.grey[500] : const Color(0xFF94A3B8), fontWeight: FontWeight.w500),
           ),
         ],
       ),
